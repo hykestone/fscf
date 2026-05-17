@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>分数乘法可视化 - 小学数学教学工具</title>
+    <style>
+        /* 样式部分保持不变 */
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: #f0f9ff;
+            background-image: 
+                radial-gradient(#b3d9ff 0.5px, transparent 0.5px),
+                radial-gradient(#b3d9ff 0.5px, #f0f9ff 0.5px);
+            background-size: 20px 20px;
+            background-position: 0 0, 10px 10px;
+            position: relative;
+            font-family: "Microsoft YaHei", "微软雅黑", sans-serif;
+        }
+
+        .header {
+            position: absolute;
+            top: 20px;
+            text-align: center;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            margin: 0 0 10px 0;
+            font-size: 48px;
+            font-family: "楷体", "KaiTi", serif;
+        }
+
+        .header p {
+            color: #666;
+            margin: 0;
+            font-size: 16px;
+        }
+
+        .container {
+            display: flex;
+            align-items: center;
+            position: relative;
+            margin-top: -120px;
+        }
+
+        .left-rectangle {
+            width: 1000px;
+            height: 600px;
+            border: 2px solid #3498db;
+            background-color: white;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+            border-radius: 10px;
+            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23d1e7ff' fill-opacity='0.3' fill-rule='evenodd'/%3E%3C/svg%3E");
+        }
+
+        .segment {
+            position: absolute;
+            background-color: transparent;
+            transition: background-color 0.5s ease;
+        }
+
+        .segment.length1 {
+            height: 100%;
+        }
+
+        .segment.length2 {
+            width: 100%;
+        }
+
+        .divider {
+            position: absolute;
+            background-color: #333;
+            transition: all 0.5s ease-in-out;
+            z-index: 10;
+        }
+
+        .divider.length1 {
+            width: 1px;
+            height: 0;
+        }
+
+        .divider.length2 {
+            height: 1px;
+            width: 0;
+            z-index: 11;
+        }
+
+        .control-btn {
+            position: absolute;
+            bottom: 180px;
+            width: 75px;
+            height: 75px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.2s;
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            border-bottom: 3px solid rgba(0,0,0,0.2);
+        }
+
+        .control-btn:disabled {
+            background-color: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+            border-bottom: none;
+        }
+
+        .length1-btn { 
+            right: 260px; 
+            background-color: #3498db;
+        }
+        .length2-btn { 
+            right: 180px; 
+            background-color: #f39c12;
+        }
+        .show-btn { 
+            right: 100px; 
+            background-color: #2ecc71;
+        }
+        .reset-btn { 
+            right: 20px; 
+            background-color: #e74c3c;
+        }
+        .control-btn:not(:disabled):hover { 
+            transform: scale(1.1);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+        }
+        .control-btn:not(:disabled):active {
+            transform: scale(1.05);
+            border-bottom-width: 1px;
+            margin-top: 2px;
+        }
+
+        .operations-container {
+            position: absolute;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 20px;
+            width: 90%;
+            max-width: 1000px;
+        }
+
+        .input-group {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            background-color: white;
+            padding: 15px 20px;
+            border-radius: 12px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            max-width: 450px;
+            border-top: 5px solid #3498db;
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+
+        .input-group:nth-child(2) {
+            border-top: 5px solid #f39c12;
+        }
+
+        .input-group-title {
+            font-family: "楷体", "KaiTi", serif;
+            color: #2c3e50;
+            font-size: 24px;
+            margin: 0 0 10px 0;
+            display: flex;
+            align-items: center;
+            height: 38px;
+        }
+
+        .input-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .input-container input {
+            width: 160px;
+            height: 20px;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+            box-sizing: content-box;
+            transition: all 0.3s;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .input-container input:focus {
+            border-color: #3498db;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2), inset 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .output-box {
+            width: 80px;
+            height: 20px;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+            background-color: #f9f9f9;
+            box-sizing: content-box;
+            text-align: center;
+            font-weight: bold;
+            color: #2c3e50;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .fraction-display-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            background-color: #f9f9f9;
+            width: 100px;
+            margin-top: 10px;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .input-container input.invalid {
+            border-color: #e74c3c;
+            box-shadow: 0 0 0 2px rgba(231, 76, 60, 0.2), inset 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .confirm-btn {
+            height: 42px;
+            padding: 0 16px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-bottom: 2px solid rgba(0,0,0,0.15);
+        }
+
+        .input-group:nth-child(2) .confirm-btn {
+            background-color: #f39c12;
+        }
+
+        .confirm-btn:disabled {
+            background-color: #bdc3c7;
+            cursor: not-allowed;
+            box-shadow: none;
+            border-bottom: none;
+        }
+
+        .confirm-btn:not(:disabled):hover {
+            background-color: #2980b9;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+        }
+
+        .input-group:nth-child(2) .confirm-btn:not(:disabled):hover {
+            background-color: #d35400;
+        }
+        
+        .confirm-btn:not(:disabled):active {
+            transform: translateY(1px);
+            border-bottom-width: 1px;
+        }
+
+        .overlap {
+            background-color: #2ecc71 !important;
+            z-index: 5;
+            opacity: 0.7;
+        }
+
+        .instruction {
+            position: absolute;
+            bottom: 280px;
+            right: 20px;
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 15px 20px;
+            border-radius: 10px;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.1);
+            font-size: 14px;
+            color: #555;
+            max-width: 350px;
+            text-align: left;
+            line-height: 1.6;
+            border-left: 4px solid #3498db;
+        }
+
+        .fraction {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            vertical-align: middle;
+            margin: 0 5px;
+            line-height: 1;
+            font-size: 18px;
+        }
+        
+        .fraction .numerator {
+            border-bottom: 1px solid #2c3e50;
+            padding: 0 5px 2px;
+        }
+        
+        .fraction .denominator {
+            padding: 2px 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>分数乘法可视化教学工具</h1>
+    </div>
+    
+    <div class="container">
+        <div class="left-rectangle"></div>
+    </div>
+
+    <div class="operations-container">
+        <div class="input-group">
+            <h3 class="input-group-title">第一个分数</h3>
+            <div class="input-container">
+                <input type="text" id="totalCount1" inputmode="numeric" placeholder="分母（1~50）">
+                <button class="confirm-btn" id="confirmTotal1" disabled>确认分母</button>
+                <div class="output-box" id="totalOutput1"></div>
+            </div>
+            <div class="input-container">
+                <input type="text" id="partCount1" inputmode="numeric" placeholder="分子（小于分母）" disabled>
+                <button class="confirm-btn" id="confirmPart1" disabled>确认分子</button>
+                <div class="output-box" id="partOutput1"></div>
+            </div>
+            <div class="fraction-display-container" id="fraction1Display">
+                <span class="fraction"><span class="numerator">-</span><span class="denominator">-</span></span>
+            </div>
+        </div>
+
+        <div class="input-group">
+            <h3 class="input-group-title">第二个分数</h3>
+            <div class="input-container">
+                <input type="text" id="totalCount2" inputmode="numeric" placeholder="分母（1~50）">
+                <button class="confirm-btn" id="confirmTotal2" disabled>确认分母</button>
+                <div class="output-box" id="totalOutput2"></div>
+            </div>
+            <div class="input-container">
+                <input type="text" id="partCount2" inputmode="numeric" placeholder="分子（小于分母）" disabled>
+                <button class="confirm-btn" id="confirmPart2" disabled>确认分子</button>
+                <div class="output-box" id="partOutput2"></div>
+            </div>
+            <div class="fraction-display-container" id="fraction2Display">
+                <span class="fraction"><span class="numerator">-</span><span class="denominator">-</span></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="instruction">
+        操作步骤：<br>
+        1. 输入两个分数的分母和分子。<br>
+        2. 点击"分1"和"涂1"完成第一个分数的可视化。<br>
+        3. 点击"分2"和"涂2"完成第二个分数的可视化。<br>
+        4. 点击"显示"查看重叠部分。<br>
+        5. 点击"重置"按钮恢复初始状态。
+    </div>
+
+    <button class="control-btn length1-btn" id="lengthButton">分1</button>
+    <button class="control-btn length2-btn" id="length2Button">分2</button>
+    <button class="control-btn show-btn" id="showButton" disabled>显示</button>
+    <button class="control-btn reset-btn" id="resetButton" disabled>重置</button>
+
+    <script>
+        // 获取DOM元素
+        const lengthButton = document.getElementById('lengthButton');
+        const leftRectangle = document.querySelector('.left-rectangle');
+        const resetButton = document.getElementById('resetButton');
+        const length2Button = document.getElementById('length2Button');
+        const showButton = document.getElementById('showButton');
+        const fraction1Display = document.getElementById('fraction1Display');
+        const fraction2Display = document.getElementById('fraction2Display');
+        
+        // 输出框和输入框元素
+        const totalOutput1 = document.getElementById('totalOutput1');
+        const partOutput1 = document.getElementById('partOutput1');
+        const totalOutput2 = document.getElementById('totalOutput2');
+        const partOutput2 = document.getElementById('partOutput2');
+        const totalInput1 = document.getElementById('totalCount1');
+        const confirmTotal1 = document.getElementById('confirmTotal1');
+        const partInput1 = document.getElementById('partCount1');
+        const confirmPart1 = document.getElementById('confirmPart1');
+        const totalInput2 = document.getElementById('totalCount2');
+        const confirmTotal2 = document.getElementById('confirmTotal2');
+        const partInput2 = document.getElementById('partCount2');
+        const confirmPart2 = document.getElementById('confirmPart2');
+        
+        // 初始化状态变量
+        function initializeState() {
+            return {
+                clickCount1: 0,
+                clickCount2: 0,
+                totalValue1: null,
+                partValue1: null,
+                totalValue2: null,
+                partValue2: null,
+                isTotalConfirmed1: false,
+                isPartConfirmed1: false,
+                isTotalConfirmed2: false,
+                isPartConfirmed2: false,
+                segmentWidth1: 0,
+                segmentHeight2: 0,
+                paintedSegments1: [],
+                paintedSegments2: [],
+                isOverlapShown: false
+            };
+        }
+        
+        // 当前状态
+        let state = initializeState();
+
+        // 输入框事件监听
+        totalInput1.addEventListener('input', () => updateTotalButtonState('1'));
+        totalInput2.addEventListener('input', () => updateTotalButtonState('2'));
+        partInput1.addEventListener('input', () => updatePartButtonState('1'));
+        partInput2.addEventListener('input', () => updatePartButtonState('2'));
+
+        // 确认按钮事件
+        confirmTotal1.addEventListener('click', () => handleConfirmWithOutput('1', 'total'));
+        confirmPart1.addEventListener('click', () => handleConfirmWithOutput('1', 'part'));
+        confirmTotal2.addEventListener('click', () => handleConfirmWithOutput('2', 'total'));
+        confirmPart2.addEventListener('click', () => handleConfirmWithOutput('2', 'part'));
+
+        // 显示按钮事件
+        showButton.addEventListener('click', function() {
+            if (state.isOverlapShown) return;
+            
+            if (state.paintedSegments1.length === 0) {
+                alert('请先完成第一个分数的分割和涂色操作');
+                return;
+            }
+            
+            if (state.paintedSegments2.length === 0) {
+                alert('请先完成第二个分数的分割和涂色操作');
+                return;
+            }
+            
+            const segments1 = document.querySelectorAll('.segment.length1');
+            const segments2 = document.querySelectorAll('.segment.length2');
+            
+            // 计算总重叠区域数量
+            const totalOverlaps = state.paintedSegments1.length * state.paintedSegments2.length;
+            // 1秒内完成所有显示
+            const interval = totalOverlaps > 1 ? 1000 / (totalOverlaps - 1) : 0;
+            
+            for (let i = 0; i < state.paintedSegments1.length; i++) {
+                const seg1Index = state.paintedSegments1[i];
+                const seg1 = segments1[seg1Index];
+                
+                if (!seg1) continue;
+                
+                const seg1Rect = seg1.getBoundingClientRect();
+                const rectRect = leftRectangle.getBoundingClientRect();
+                const left = seg1Rect.left - rectRect.left;
+                const width = seg1Rect.width;
+                
+                for (let j = 0; j < state.paintedSegments2.length; j++) {
+                    const seg2Index = state.paintedSegments2[j];
+                    const seg2 = segments2[seg2Index];
+                    
+                    if (!seg2) continue;
+                    
+                    const seg2Rect = seg2.getBoundingClientRect();
+                    const top = seg2Rect.top - rectRect.top - 1;
+                    const height = seg2Rect.height;
+                    
+                    const overlap = document.createElement('div');
+                    overlap.classList.add('overlap');
+                    overlap.style.position = 'absolute';
+                    overlap.style.left = `${left}px`;
+                    overlap.style.top = `${top}px`;
+                    overlap.style.width = `${width}px`;
+                    overlap.style.height = `${height}px`;
+                    overlap.style.transition = 'opacity 0.3s ease';
+                    overlap.style.opacity = '0';
+                    
+                    leftRectangle.appendChild(overlap);
+                    
+                    // 计算延迟时间
+                    const delay = Math.floor((i * state.paintedSegments2.length + j) * interval);
+                    setTimeout(() => {
+                        overlap.style.opacity = '1';
+                    }, delay);
+                }
+            }
+            
+            state.isOverlapShown = true;
+            showButton.disabled = true;
+        });
+
+        // 统一处理确认和输出的函数
+        function handleConfirmWithOutput(group, type) {
+            const input = document.getElementById(`${type}Count${group}`);
+            const inputValue = input.value.trim();
+            const numericValue = parseInt(inputValue, 10);
+            document.getElementById(`${type}Output${group}`).textContent = numericValue.toString();
+            
+            // 更新分数显示
+            updateFractionDisplay(group);
+            
+            if (type === 'total') {
+                handleConfirmTotal(group);
+            } else {
+                handleConfirmPart(group);
+            }
+        }
+
+        // 更新分数显示（上下结构）
+        function updateFractionDisplay(group) {
+            const total = document.getElementById(`totalOutput${group}`).textContent;
+            const part = document.getElementById(`partOutput${group}`).textContent;
+            const fractionEl = document.querySelector(`#fraction${group}Display .fraction`);
+            
+            const numeratorEl = fractionEl.querySelector('.numerator');
+            const denominatorEl = fractionEl.querySelector('.denominator');
+            
+            if (total && part) {
+                numeratorEl.textContent = part;
+                denominatorEl.textContent = total;
+            } else if (total) {
+                numeratorEl.textContent = '?';
+                denominatorEl.textContent = total;
+            } else {
+                numeratorEl.textContent = '-';
+                denominatorEl.textContent = '-';
+            }
+        }
+
+        // 总份数按钮状态更新 - 1~50范围
+        function updateTotalButtonState(group) {
+            const input = document.getElementById(`totalCount${group}`);
+            const confirmBtn = document.getElementById(`confirmTotal${group}`);
+            
+            if (state[`isTotalConfirmed${group}`]) return;
+            
+            input.value = input.value.replace(/[^0-9]/g, '');
+            const num = parseInt(input.value, 10);
+            const isValid = !isNaN(num) && num >= 1 && num <= 50;
+            
+            if (isValid) {
+                input.classList.remove('invalid');
+                confirmBtn.disabled = false;
+            } else {
+                input.classList.add('invalid');
+                confirmBtn.disabled = true;
+            }
+        }
+
+        // 部分份数按钮状态更新
+        function updatePartButtonState(group) {
+            const input = document.getElementById(`partCount${group}`);
+            const confirmBtn = document.getElementById(`confirmPart${group}`);
+            const totalConfirmed = state[`isTotalConfirmed${group}`];
+            const totalVal = state[`totalValue${group}`];
+            
+            if (!totalConfirmed || state[`isPartConfirmed${group}`]) return;
+            
+            input.value = input.value.replace(/[^0-9]/g, '');
+            const num = parseInt(input.value, 10);
+            const isValid = input.value !== '' && !isNaN(num) && num >= 1 && num < totalVal;
+            
+            if (isValid) {
+                input.classList.remove('invalid');
+                confirmBtn.disabled = false;
+            } else {
+                input.classList.add('invalid');
+                confirmBtn.disabled = true;
+            }
+        }
+
+        // 处理总份数确认
+        function handleConfirmTotal(group) {
+            const input = document.getElementById(`totalCount${group}`);
+            const num = parseInt(input.value, 10);
+            
+            if (!isNaN(num) && num >= 1 && num <= 50) {
+                state[`totalValue${group}`] = num;
+                state[`isTotalConfirmed${group}`] = true;
+                
+                input.disabled = true;
+                document.getElementById(`confirmTotal${group}`).disabled = true;
+                document.getElementById(`partCount${group}`).disabled = false;
+                document.getElementById(`partCount${group}`).dispatchEvent(new Event('input'));
+                
+                updateButtonStates();
+            }
+        }
+
+        // 处理部分份数确认
+        function handleConfirmPart(group) {
+            const input = document.getElementById(`partCount${group}`);
+            const num = parseInt(input.value, 10);
+            const totalVal = state[`totalValue${group}`];
+            
+            if (!isNaN(num) && num >= 1 && num < totalVal) {
+                state[`partValue${group}`] = num;
+                state[`isPartConfirmed${group}`] = true;
+                
+                input.disabled = true;
+                document.getElementById(`confirmPart${group}`).disabled = true;
+                
+                updateButtonStates();
+            }
+        }
+
+        // 更新按钮状态
+        function updateButtonStates() {
+            lengthButton.disabled = state.clickCount1 >= 2;
+            length2Button.disabled = state.clickCount2 >= 2;
+            showButton.disabled = !(state.clickCount1 >= 2 && state.clickCount2 >= 2 && !state.isOverlapShown);
+            
+            // 只要有任何一个分母被确认，重置按钮就可以点击
+            const hasAnyAction = state.isTotalConfirmed1 || state.isTotalConfirmed2 ||
+                                state.isPartConfirmed1 || state.isPartConfirmed2 ||
+                                state.clickCount1 > 0 || state.clickCount2 > 0 ||
+                                state.isOverlapShown;
+            resetButton.disabled = !hasAnyAction;
+        }
+
+        // 分1按钮功能（纵向分割）
+        lengthButton.addEventListener('click', function() {
+            if (state.clickCount1 === 0) {
+                const outputValue = totalOutput1.textContent.trim();
+                const totalParts = parseInt(outputValue, 10);
+                
+                if (isNaN(totalParts) || totalParts < 1 || totalParts > 50) {
+                    alert('请先输入并确认有效的分母（1~50）');
+                    return;
+                }
+                
+                const rectWidth = leftRectangle.offsetWidth;
+                state.segmentWidth1 = rectWidth / totalParts;
+                
+                // 计算分割线显示间隔，确保1秒内完成
+                const interval = totalParts > 1 ? 1000 / (totalParts - 1) : 0;
+                
+                for (let i = 0; i < totalParts; i++) {
+                    const segment = document.createElement('div');
+                    segment.classList.add('segment', 'length1');
+                    segment.style.width = `${state.segmentWidth1}px`;
+                    segment.style.left = `${i * state.segmentWidth1}px`;
+                    leftRectangle.appendChild(segment);
+                    
+                    if (i < totalParts - 1) {
+                        const divider = document.createElement('div');
+                        divider.classList.add('divider', 'length1');
+                        divider.style.left = `${(i + 1) * state.segmentWidth1}px`;
+                        leftRectangle.appendChild(divider);
+                        
+                        // 根据计算的间隔显示分割线
+                        setTimeout(() => {
+                            divider.style.height = '100%';
+                        }, Math.floor(i * interval));
+                    }
+                }
+                
+                // 第一次点击后按钮文字改为"涂1"
+                lengthButton.textContent = "涂1";
+                state.totalValue1 = totalParts;
+                state.isTotalConfirmed1 = true;
+                state.clickCount1 = 1;
+                updateButtonStates();
+            }
+            else if (state.clickCount1 === 1) {
+                const partValue = partOutput1.textContent.trim();
+                const paintParts = parseInt(partValue, 10);
+                
+                if (isNaN(paintParts) || paintParts < 1 || paintParts >= state.totalValue1) {
+                    alert('请先输入并确认有效的分子（1~' + (state.totalValue1 - 1) + '）');
+                    return;
+                }
+                
+                const segments = document.querySelectorAll('.segment.length1');
+                
+                // 计算涂色间隔，确保1秒内完成
+                const interval = paintParts > 1 ? 1000 / (paintParts - 1) : 0;
+                
+                state.paintedSegments1 = [];
+                for (let i = 0; i < paintParts; i++) {
+                    state.paintedSegments1.push(i);
+                }
+                
+                for (let i = 0; i < paintParts; i++) {
+                    if (segments[i]) {
+                        setTimeout(() => {
+                            segments[i].style.backgroundColor = 'rgba(52, 152, 219, 0.5)';
+                        }, Math.floor(i * interval));
+                    }
+                }
+                
+                state.clickCount1 = 2;
+                updateButtonStates();
+            }
+        });
+
+        // 分2按钮功能（横向分割）
+        length2Button.addEventListener('click', function() {
+            if (state.clickCount2 === 0) {
+                const outputValue = totalOutput2.textContent.trim();
+                const totalParts = parseInt(outputValue, 10);
+                
+                if (isNaN(totalParts) || totalParts < 1 || totalParts > 50) {
+                    alert('请先输入并确认第二次的分母（1~50）');
+                    return;
+                }
+                
+                const rectHeight = leftRectangle.offsetHeight;
+                state.segmentHeight2 = rectHeight / totalParts;
+                
+                // 计算分割线显示间隔，确保1秒内完成
+                const interval = totalParts > 1 ? 1000 / (totalParts - 1) : 0;
+                
+                for (let i = 0; i < totalParts; i++) {
+                    const segment = document.createElement('div');
+                    segment.classList.add('segment', 'length2');
+                    segment.style.height = `${state.segmentHeight2}px`;
+                    segment.style.top = `${i * state.segmentHeight2}px`;
+                    leftRectangle.appendChild(segment);
+                    
+                    if (i < totalParts - 1) {
+                        const divider = document.createElement('div');
+                        divider.classList.add('divider', 'length2');
+                        divider.style.top = `${(i + 1) * state.segmentHeight2}px`;
+                        leftRectangle.appendChild(divider);
+                        
+                        // 根据计算的间隔显示分割线
+                        setTimeout(() => {
+                            divider.style.width = '100%';
+                        }, Math.floor(i * interval));
+                    }
+                }
+                
+                // 第一次点击后按钮文字改为"涂2"
+                length2Button.textContent = "涂2";
+                state.totalValue2 = totalParts;
+                state.isTotalConfirmed2 = true;
+                state.clickCount2 = 1;
+                updateButtonStates();
+            }
+            else if (state.clickCount2 === 1) {
+                const partValue = partOutput2.textContent.trim();
+                const paintParts = parseInt(partValue, 10);
+                
+                if (isNaN(paintParts) || paintParts < 1 || paintParts >= state.totalValue2) {
+                    alert('请先输入并确认有效的分子（1~' + (state.totalValue2 - 1) + '）');
+                    return;
+                }
+                
+                const segments = document.querySelectorAll('.segment.length2');
+                
+                // 计算涂色间隔，确保1秒内完成
+                const interval = paintParts > 1 ? 1000 / (paintParts - 1) : 0;
+                
+                state.paintedSegments2 = [];
+                for (let i = 0; i < paintParts; i++) {
+                    state.paintedSegments2.push(i);
+                }
+                
+                for (let i = 0; i < paintParts; i++) {
+                    if (segments[i]) {
+                        setTimeout(() => {
+                            segments[i].style.backgroundColor = 'rgba(243, 156, 18, 0.5)';
+                        }, Math.floor(i * interval));
+                    }
+                }
+                
+                state.clickCount2 = 2;
+                updateButtonStates();
+            }
+        });
+
+        // 重置按钮功能（完全重置）
+        resetButton.addEventListener('click', function() {
+            if (confirm('确定要重置为初始状态吗？当前操作将被清空。')) {
+                // 移除所有分割线、区块和重叠部分
+                const dividers = document.querySelectorAll('.divider');
+                dividers.forEach(divider => divider.remove());
+                
+                const segments = document.querySelectorAll('.segment');
+                segments.forEach(segment => segment.remove());
+                
+                const overlaps = document.querySelectorAll('.overlap');
+                overlaps.forEach(overlap => overlap.remove());
+                
+                // 重置输入框状态
+                [totalInput1, totalInput2].forEach(input => {
+                    input.value = '';
+                    input.disabled = false;  // 分母输入框可编辑
+                    input.classList.remove('invalid');
+                    input.focus();
+                    input.blur(); // 触发状态更新
+                });
+                
+                [partInput1, partInput2].forEach(input => {
+                    input.value = '';
+                    input.disabled = true;   // 分子输入框默认禁用
+                    input.classList.remove('invalid');
+                });
+                
+                // 重置输出框
+                [totalOutput1, partOutput1, totalOutput2, partOutput2].forEach(output => {
+                    output.textContent = '';
+                });
+                
+                // 重置分数显示
+                document.querySelectorAll('.fraction .numerator').forEach(el => el.textContent = '-');
+                document.querySelectorAll('.fraction .denominator').forEach(el => el.textContent = '-');
+                
+                // 重置按钮文字
+                lengthButton.textContent = "分1";
+                length2Button.textContent = "分2";
+                
+                // 重置确认按钮状态
+                [confirmTotal1, confirmTotal2, confirmPart1, confirmPart2].forEach(btn => {
+                    btn.disabled = true;
+                });
+                
+                // 完全重置状态
+                state = initializeState();
+                
+                // 触发输入事件以更新按钮状态
+                totalInput1.dispatchEvent(new Event('input'));
+                totalInput2.dispatchEvent(new Event('input'));
+                
+                // 确保显示按钮和重置按钮状态正确
+                showButton.disabled = true;
+                resetButton.disabled = true;
+            }
+        });
+    </script>
+</body>
+</html>
